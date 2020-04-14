@@ -8,6 +8,16 @@ Last edited April 2020
 import urllib
 import pandas as pd
 from bs4 import BeautifulSoup
+import os
+
+#Function for creating directory
+def create_dir(path): 
+    try:
+        # Create target Directory
+        os.mkdir(path)
+        print("Directory " , path ,  " Created ") 
+    except FileExistsError:
+        print("Directory " , path ,  " already exists")
 
 """
 Get links to all txt, pdf, and zip files.  
@@ -35,6 +45,8 @@ Use the first line of code to test if the query is working for this report
 before running it on all urls.
 """
 
+create_dir('html')
+
 #Test
 urllib.request.urlretrieve(webpages[0], "html/doc_{}.txt".format(i))
 
@@ -46,6 +58,10 @@ for i in range(1,len(webpages)):
 Parse html to find links to all pdfs, txt, and zip files.
 Save date published, link, file_name, file_type, and source page to csv.
 """
+
+
+#Create export directory
+create_dir('export')
 
 # Note that price reports for different commodities do not have all three of these file types
 date_list   = []
