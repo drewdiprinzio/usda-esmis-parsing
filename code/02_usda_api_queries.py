@@ -114,9 +114,9 @@ def curl_report_by_identifier(start_date,end_date,identifier,save_name):
     # Load results, create df, export as CSV
     results = json.loads(to_parse)
     
-    results_peanutprices = pd.DataFrame(results) 
+    results_df = pd.DataFrame(results) 
     
-    results_peanutprices.to_csv(f'export/results_{save_name}.csv')
+    results_df.to_csv(f'export/results_{save_name}.csv')
 
 
 
@@ -168,31 +168,32 @@ results_df = results_df[results_df['is_report']==True]
 results_df
 
 """
-One common report seems to be the 'Onion & Potato Recap Report'
+From viewing the results_df, one common report seems to be the 'Onion & Potato Report'
 """
 
 results_df['onion_report'] = results_df['title'].str.contains('Onion (&|and) Potato')
 
 results_df = results_df[results_df['onion_report']==True]
 
-# There are 17 different shipping points listed.
-# We will use Philadelphia (index 7)
+results_df.identifier = results_df.identifier.str[2:10]
+
 results_df.reset_index(inplace=True)
 
+"""
+There are 17 different geographic locations listed, and two slightly different reports,
+the shipping point and the wholesale market reports.
+
+First we will run function to pull all releases for a single identifier.
+We will use Philadelphia (index 5).
+"""
+
 identifier = results_df['identifier'][5]
-
-# We need to clean the identifier:
-identifier = identifier[2:10]
-
-"""
-Run function to pull all releases for this identifier
-"""
 
 #Input vars to curl request
 start_date = '2006-01-01'
 end_date   = '2020-04-15'
-save_name  = 'onion_price' #for files to be saved
+save_name  = 'onion_price_phl' #for files to be saved
 
 curl_report_by_identifier(start_date, end_date, identifier, save_name)
 
-onion_prices_df = pd.read_csv('export/results_onion_price.csv')
+phl_reports = pd.read_csv('export/results_onion_price_phl.csv')
