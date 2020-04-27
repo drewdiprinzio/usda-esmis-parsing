@@ -13,6 +13,9 @@ import os
 import json
 import pandas as pd
 import re
+import urllib
+# from datetime import datetime
+import pickle
 
 """
 Before beginning, we will want to prepare a few things:
@@ -196,4 +199,44 @@ save_name  = 'onion_price_phl' #for files to be saved
 
 curl_report_by_identifier(start_date, end_date, identifier, save_name)
 
+"""
+Bulk download Philadelphia report txt files
+"""
+
 phl_reports = pd.read_csv('export/results_onion_price_phl.csv')
+
+create_dir('export/onion_price_phl_files')
+
+# View the first txt file
+def clean_filename(file):
+    file = file[2:len(file)-2]
+    return file
+    
+phl_reports['clean_files'] = pd.Series(map(clean_filename,phl_reports['files']))
+
+def save_files(export_folder,dataframe,files_col,date_col,name_col):
+    
+    create_dir('export')
+    create_dir(f'export/{export_folder}')
+    
+    for i in range(0,len(dataframe)):
+    
+        if (i%50==0):
+            print(f'file {i} of {len(dataframe)}')
+        
+        file_path = list(dataframe[files_col])[i]
+        date      = list(dataframe[date_col])[i][0:10]
+        name      = list(dataframe[name_col])[i]
+        
+        file = urllib.request.urlopen(file_path)
+        
+        content = []
+        
+        for line in file:
+        	decoded_line = line.decode("unicode_escape")
+        	content.append(decoded_line)
+            
+        with open(f'export/{export_folder}/{i:04}_{date}_{name}.txt', 'wb') as fp:
+            pickle.dump(content, fp)
+        
+save_files('onion_price_phl_files',phl_reports,'clean_files','release_datetime','id')
