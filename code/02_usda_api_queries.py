@@ -62,7 +62,7 @@ def curl_publication_search(search_query,identifier):
     # "https://usda.library.cornell.edu/api/v1/publication/search?q={search_query}"
     
     # Curl request to 
-    command = f'curl -X GET "https://usda.library.cornell.edu/api/v1/publication/search?q={search_query}" -H "Accept: applicatio/json" -H "Authorization: Bearer {my_token}" -w "%\u007bresponse_code\u007d;%\u007btime_total\u007d"> curl/dataFile_{identifier}.json 2> curl/informationFile_{identifier}.txt'
+    command = f'curl -X GET "https://usda.library.cornell.edu/api/v1/publication/search?q={search_query}" -H "Accept: applicatio/json" -H "Authorization: Bearer {my_token}" > curl/dataFile_{identifier}.json 2> curl/informationFile_{identifier}.txt'
 
     os.system(command)
 
@@ -70,13 +70,8 @@ def curl_publication_search(search_query,identifier):
     with open(f'curl/dataFile_{identifier}.json', 'r') as f:
         data = f.read()
 
-    # The curl request has some extra numbers at the end which probably relate to the 
-    # specific request, (such as time taken to download).  These cause errors when using 
-    # json.loads, so remove them with regex substitute.
-    to_parse = re.sub(r"[0-9]{3};[0-9]{1,3}\.[0-9]{5,6}$", "", data)
-
     # Load results, create df, export as CSV
-    results = json.loads(to_parse)
+    results = json.loads(data)
     
     results_df = pd.DataFrame(results)    
     
@@ -89,6 +84,7 @@ identifier = 'price_search'
 
 curl_publication_search(search_query,identifier)
 
+view = pd.read_csv('export/results_price_search.csv')
 
 """
 Create second function: Request all releases by report identifier
@@ -104,7 +100,7 @@ def curl_report_by_identifier(start_date,end_date,identifier,save_name):
     # This query takes the form:
     # https://usda.library.cornell.edu/api/v1/release/findByIdentifier/{identifier}?latest=false&start_date={start_date}&end_date={end_date}
         
-    command = f'curl -X GET "https://usda.library.cornell.edu/api/v1/release/findByIdentifier/{identifier}?latest=false&start_date={start_date}&end_date={end_date}" -H "accept: application/json" -H "Authorization: Bearer {my_token}" -w "%\u007bresponse_code\u007d;%\u007btime_total\u007d"> curl/dataFile_{save_name}.json 2> curl/informationFile_{save_name}.txt'
+    command = f'curl -X GET "https://usda.library.cornell.edu/api/v1/release/findByIdentifier/{identifier}?latest=false&start_date={start_date}&end_date={end_date}" -H "accept: application/json" -H "Authorization: Bearer {my_token}" > curl/dataFile_{save_name}.json 2> curl/informationFile_{save_name}.txt'
     
     os.system(command)
     
@@ -112,10 +108,8 @@ def curl_report_by_identifier(start_date,end_date,identifier,save_name):
     with open(f'curl/dataFile_{save_name}.json', 'r') as f:
         data = f.read()
 
-    to_parse = re.sub(r"[0-9]{3};[0-9]{1,3}\.[0-9]{5,6}$", "", data)
-     
     # Load results, create df, export as CSV
-    results = json.loads(to_parse)
+    results = json.loads(data)
     
     results_df = pd.DataFrame(results) 
     
@@ -198,6 +192,16 @@ end_date   = '2020-04-15'
 save_name  = 'onion_price_phl' #for files to be saved
 
 curl_report_by_identifier(start_date, end_date, identifier, save_name)
+
+"""
+Running identifier on additional files
+"""
+start_date = '2006-01-01'
+end_date   = '2018-12-15'
+save_name  = 'prod2' #for files to be saved
+identifier = 'AJ_PY046'
+curl_report_by_identifier(start_date, end_date, identifier, save_name)
+
 
 """
 Bulk download Philadelphia report txt files
